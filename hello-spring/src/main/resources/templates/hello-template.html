@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" >
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+	      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+<div>
+	<p th:text="'안녕하세요. ' + ${name} + ' 입니다. '">안녕하세요. 이바다</p>
+	<br>
+	<h3>컨트롤러에서 매핑된 메서드를 찾게 되면, model객체에 get으로 넘어간 파라미터의 데이터를 담아서 뷰리졸버에게 전달하고, 최종적으로 뷰리졸버가 html문서를 생성해서 클라이언트(브라우저)에 반환</h3>
+</div>
+</body>
+</html>

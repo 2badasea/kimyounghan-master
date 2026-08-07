@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+	      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+	<div>
+		<h1>정적 페이지 반환</h1>
+		<h3>스프링부트는 기본적으로 static 하위에 html파일을 위치시키면 브라우저 URL에서 컨텍스트루트/파일명 입력 시, 해당 정적 파일을 그대로 반환한다.</h3>
+		<br>
+		<h3>tomcat이 먼저 url을 해석하고, 컨트롤러에서 해당 패턴과 매핑되는 메서드를 찾고, 없으면 resources/ 하위에서 해당 파일을 찾도록 한다. 여기에도 없으면 404 반환</h3>
+	</div>
+</body>
+</html>
