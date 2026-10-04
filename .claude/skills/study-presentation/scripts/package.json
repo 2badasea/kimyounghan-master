@@ -1,0 +1,8 @@
+{
+  "name": "study-presentation-builder",
+  "private": true,
+  "description": "스터디 발표자료(pptx) + 발표대본(md) 생성기",
+  "dependencies": {
+    "pptxgenjs": "^3.12.0"
+  }
+}

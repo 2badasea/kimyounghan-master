@@ -1,0 +1,15 @@
+{
+  "language": "korean",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[응답 언어 규칙 · kimyounghan 저장소] 사용자에게 보이는 모든 답변(요약·보고·질문 포함)은 반드시 한국어로 작성한다. 코드·식별자·명령어·경로만 원문 그대로 둔다.'"
+          }
+        ]
+      }
+    ]
+  }
+}
