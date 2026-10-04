@@ -17,7 +17,7 @@
 | `hello-spring/` 등 | 강의 실습 프로젝트 |
 | `.claude/skills/study-presentation/` | 발표자료 생성 스킬 |
 
-강의자료 PDF·강의 제공 소스는 **git 에 없다**(.gitignore). 각 PC 의 OneDrive 원본을 쓰고, 경로는 요청서에 적힌 것을 따른다.
+강의자료 PDF·강의 제공 소스는 **git 에 없다**(.gitignore). 각 PC 에서 **인프런 강의 페이지에서 내려받아** `<강좌>/김영한 - <강좌명>/` 에 둔다. 경로는 요청서에 적힌 것을 따른다.
 
 ## 발표자료 요청이 오면
 
@@ -44,7 +44,7 @@
 2. `.claude/skills/study-presentation/scripts` 에서 `npm install`
 3. **Pretendard 글꼴 설치** — 없으면 슬라이드 글자가 잘리고 겹친다
 4. 렌더 검수에는 Microsoft PowerPoint 필요 (`scripts/render.ps1`)
-5. 강의자료 PDF 는 OneDrive 에서 동기화
+5. 강의자료 PDF 는 그 PC 에서 공부할 강좌만 인프런에서 내려받아 `<강좌>/김영한 - <강좌명>/` 에 둔다 (git 제외)
 
 ## 이 환경에서 주의 (Windows)
 
