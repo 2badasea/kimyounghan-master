@@ -614,6 +614,8 @@ function buildScript(slides, times) {
 // 1) pptxgenjs가 색이 섞인 문단에 <a:pPr>를 여러 번 쓰는 문제 → 문단 첫 pPr만 남긴다
 // 2) 코드 폰트(Consolas)의 한글은 Pretendard로 표시
 // 3) 테마 폰트의 동아시아(ea) 글꼴도 Pretendard로 지정 → PowerPoint에서 새로 입력하는 한글도 Pretendard
+// 4) pptxgenjs가 글꼴마다 붙이는 pitchFamily·charset 속성 제거. ea 에 중국어 문자셋(-122)이 붙으면
+//    PowerPoint 가 Pretendard 글자 폭을 잘못 재서 단어가 사라지거나("아니라" 누락) 겹친다("OCP") — 2026-10-12 렌더 비교로 확인
 async function postProcess(file) {
   const zip = await JSZip.loadAsync(fs.readFileSync(file));
   for (const name of Object.keys(zip.files)) {
@@ -625,6 +627,7 @@ async function postProcess(file) {
         return `<a:p>${fixed}</a:p>`;
       });
       xml = xml.replace(/<a:ea typeface="Consolas"/g, `<a:ea typeface="${FONT.body}"`);
+      xml = xml.replace(/(<a:(?:latin|ea|cs|sym|buFont) typeface="[^"]*")(?: pitchFamily="\d+")?(?: charset="-?\d+")?/g, "$1");
       zip.file(name, xml);
     }
     if (/^ppt\/theme\/theme\d+\.xml$/.test(name)) {

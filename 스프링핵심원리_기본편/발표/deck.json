@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "title": "김영한의 스프링 핵심 원리 - 기본편",
+    "style": "v1",
+    "course": "김영한의 스프링 핵심 원리 - 기본편",
+    "presenter": "이바다",
+    "scope": "2~4장(5~73쪽)",
+    "runtime": "약 14분 30초",
+    "compress": "**10번(실무 보충)** 은 0:40으로 줄이세요. 왼쪽 레거시·부트 비교 두 줄만 말하고 넘어갑니다."
+  },
+  "output": { "dir": ".", "name": "김영한_스프링핵심원리_기본편_발표", "script": "발표대본.md" },
+  "slides": [
+    {
+      "type": "cover",
+      "label": "표지·목차",
+      "eyebrow": "김영한의 스프링 핵심 원리 - 기본편",
+      "title": "스프링 핵심 원리 기본편",
+      "agenda": [
+        { "no": "01", "title": "구현까지 의존하는 문제", "desc": "인터페이스를 썼는데 왜 고칠까" },
+        { "no": "02", "title": "DI와 스프링 빈", "desc": "AppConfig에서 스프링 컨테이너로" },
+        { "no": "03", "title": "자바 설정과 XML 설정", "desc": "빈을 등록하는 두 형식" }
+      ],
+      "extra": "+ 마지막에 퀴즈 2문제",
+      "time": "0:30",
+      "script": [
+        "스프링 핵심 원리 기본편, 2장부터 4장까지 발표를 맡은 이바다입니다.",
+        "오늘은 세 덩어리입니다. 구현까지 의존하는 문제, DI와 스프링 빈, 그리고 자바 설정과 XML 설정입니다.",
+        "한 문장으로 미리 말씀드리면, **객체를 만들고 연결하는 책임을 사용하는 코드에서 떼어내는 과정**입니다.",
+        "마지막에 퀴즈 두 문제가 있습니다."
+      ],
+      "cues": ["\"객체를 만들고 연결하는 책임을 떼어낸다\" — 이 말이 발표 전체를 관통합니다. 천천히."]
+    },
+    {
+      "type": "code-compare",
+      "eyebrow": "01  구현까지 의존하는 문제",
+      "title": "정률 할인 정책 적용",
+      "lead": "역할과 구현을 나눴는데, 왜 **사용하는 쪽 코드**를 고쳐야 할까?",
+      "left": { "label": "before — 정액 할인 (VIP 1000원)", "code": "// OrderServiceImpl\nprivate final DiscountPolicy discountPolicy =\n        new FixDiscountPolicy();" },
+      "right": { "label": "after — 정률 할인 (VIP 10%)", "code": "// OrderServiceImpl\nprivate final DiscountPolicy discountPolicy =\n//      new FixDiscountPolicy();\n        new RateDiscountPolicy();" },
+      "points": [
+        { "head": "할인 정책", "body": "`DiscountPolicy` 인터페이스 — 정액·정률 두 구현" },
+        { "head": "바꾸려면", "body": "**사용하는 쪽**인 `OrderServiceImpl` 을 열어 고친다" }
+      ],
+      "time": "1:00",
+      "script": [
+        "예제는 회원이 상품을 주문하면 등급에 따라 할인해 주는 주문 서비스입니다.",
+        "여기서 **역할**은 `DiscountPolicy` 인터페이스입니다. `discount(member, price)`, 즉 할인 금액을 돌려준다는 메서드 선언만 있고 계산 방법은 없어요. **구현**은 이 인터페이스를 `implements` 한 클래스로, VIP 1000원을 깎는 `FixDiscountPolicy` 와 10%를 깎는 `RateDiscountPolicy` 두 개입니다.",
+        "그리고 화면 코드처럼 서비스 필드의 타입도 구현 클래스가 아니라 `DiscountPolicy` 인터페이스로 선언했습니다. 소스 코드에서 역할과 구현은 이렇게 나뉘어 있어요.",
+        "참고로 프로젝트만 스프링 부트로 만들었을 뿐, 여기까지는 **스프링 없는 순수 자바** 코드입니다.",
+        "그런데 오픈 직전에 기획자가 정률 10% 할인으로 바꿔 달라고 합니다. 오른쪽처럼 `RateDiscountPolicy` 로 바꾸면 되는데요.",
+        "위 질문입니다. 역할과 구현을 나눴는데, 왜 사용하는 쪽인 `OrderServiceImpl` 을 열어서 고쳐야 할까요? 생각나는 대로 채팅에 써 주세요.",
+        "(5~8초 기다린다 — 채팅)",
+        "답은 그림으로 보면 바로 보입니다."
+      ],
+      "cues": ["질문 후 **반드시 기다리세요.** 채팅 답을 한두 개 읽어 준 뒤 넘어갑니다."]
+    },
+    {
+      "type": "image",
+      "eyebrow": "01  구현까지 의존하는 문제",
+      "title": "구현까지 의존하는 문제",
+      "tag": "핵심",
+      "image": { "path": "img/3장_p29.png", "caption": "출처: 강의자료 3장 — 실제 의존관계", "alt": "OrderServiceImpl이 DiscountPolicy 인터페이스와 FixDiscountPolicy 구체 클래스에 함께 의존하는 그림" },
+      "bullets": [
+        "**DIP 위반** — 인터페이스뿐 아니라 `FixDiscountPolicy` 구체 클래스에도 의존",
+        "**OCP 위반** — 정책을 확장하면 사용하는 코드를 고쳐야 한다",
+        "**SRP 위반** — 주문 생성(실행)에 더해 구현을 고르고 생성하는 책임까지"
+      ],
+      "keyline": "원인은 `new` 한 줄",
+      "time": "1:20",
+      "script": [
+        "강의자료의 실제 의존관계 그림입니다.",
+        "`OrderServiceImpl` 은 위쪽 화살표처럼 `DiscountPolicy` 인터페이스에 의존합니다. 여기까지는 의도한 대로예요.",
+        "그런데 아래 화살표를 보시면, `new FixDiscountPolicy()` 한 줄 때문에 **구체 클래스에도 의존**하고 있습니다. 이 한 줄을 세 관점으로 보겠습니다.",
+        "첫째 DIP. 추상화에 의존해야지 구체화에 의존하면 안 된다는 원칙인데, 구체 클래스를 직접 알고 있으니 **DIP 위반**입니다.",
+        "둘째 OCP. 확장에는 열려 있고 변경에는 닫혀 있어야 하는데, 정률 할인을 추가하려니 사용하는 코드를 고쳐야 했죠. **OCP 위반**입니다.",
+        "셋째 SRP. 이 클래스는 할인을 적용해 주문을 만드는 일을 해야 하는데, 어떤 구현을 쓸지 고르고 생성하는 일까지 하고 있습니다. 책임이 둘이라 **SRP 위반**입니다.",
+        "세 위반의 원인은 모두 아래 문장, 이 `new` 한 줄입니다."
+      ],
+      "cues": ["오른쪽 세 줄은 **DIP → OCP → SRP 순서**로. 6번 슬라이드에서 같은 순서로 \"충족\"을 말합니다.", "아래 화살표(구체 클래스로 가는 선)를 가리키며 시작하세요."]
+    },
+    {
+      "type": "code-compare",
+      "eyebrow": "02  DI와 스프링 빈",
+      "title": "생성자 주입",
+      "lead": "인터페이스만 남기면 **NPE** — 구현 객체는 누가 넣어줄까?",
+      "left": { "label": "인터페이스에만 의존 — 실행하면 NPE", "code": "// OrderServiceImpl\nprivate DiscountPolicy discountPolicy;  // null" },
+      "right": { "label": "생성자로 받는다", "code": "private final MemberRepository memberRepository;\nprivate final DiscountPolicy discountPolicy;\npublic OrderServiceImpl(\n        MemberRepository memberRepository,\n        DiscountPolicy discountPolicy) {\n    this.memberRepository = memberRepository;\n    this.discountPolicy = discountPolicy;\n}" },
+      "time": "1:30",
+      "script": [
+        "그럼 `new` 를 지우면 어떨까요? 왼쪽처럼 인터페이스만 남기면 DIP 는 지킨 것처럼 보입니다.",
+        "여기서 컴파일 오류가 나지 않을까 싶으실 텐데, 나지 않습니다. 값을 넣지 않은 객체 필드는 자바가 기본값 `null` 로 채워 주기 때문에 문법상 문제가 없어요.",
+        "문제는 실행할 때입니다. `createOrder()` 안에서 `discountPolicy.discount(...)` 를 호출하는 순간, null 에 메서드를 호출하니까 NullPointerException 이 납니다. 컴파일은 통과하고 **실행 중에** 터지는 거죠.",
+        "참고로 강의 코드도 이 줄에서만 `final` 을 뺐습니다. `final` 을 붙이면 값을 넣는 곳이 없어서 이번엔 **컴파일 오류**가 나기 때문이에요.",
+        "위 질문입니다. 그럼 구현 객체는 누가 넣어 줘야 할까요? 채팅으로 답해 주세요.",
+        "(5~8초 기다린다 — 채팅)",
+        "답은 **외부의 누군가**입니다. 오른쪽처럼 생성자로 받기만 합니다.",
+        "오른쪽 필드에 `final` 을 붙인 이유는 두 가지입니다. 첫째, `final` 필드는 생성자에서 반드시 값을 넣어야 해서, 주입을 빠뜨리면 실행 전에 **컴파일 오류**로 알려 줍니다. 왼쪽처럼 실행하다 NPE 가 나는 걸 미리 막는 거예요. 둘째, 한 번 넣으면 바꿀 수 없어서 실행 도중에 다른 구현으로 바뀔 일이 없습니다. 이 내용은 7장 생성자 주입에서 다시 나옵니다.",
+        "이제 `OrderServiceImpl` 은 어떤 구현이 들어올지 모르고, 자기 일인 주문 생성에만 집중합니다. 무엇을 넣을지는 다음 장의 AppConfig 가 정합니다."
+      ],
+      "cues": ["질문 후 **반드시 기다리세요.**", "대비를 분명히 — `final` 없음: 컴파일 통과 → 실행 중 NPE / `final` 있음: 빠뜨리면 컴파일 오류."]
+    },
+    {
+      "type": "code-explain",
+      "eyebrow": "02  DI와 스프링 빈",
+      "title": "AppConfig",
+      "code": { "label": "AppConfig — 생성하고 연결하는 설정 클래스 (memberService 생략)", "code": "public class AppConfig {\n    public OrderService orderService() {\n        return new OrderServiceImpl(\n                memberRepository(), discountPolicy());\n    }\n    public MemberRepository memberRepository() {\n        return new MemoryMemberRepository();\n    }\n    public DiscountPolicy discountPolicy() {\n        return new FixDiscountPolicy();\n    }\n}" },
+      "bullets": [
+        "구현 객체를 **생성**하고, 생성자로 **연결(주입)**",
+        "메서드 이름 = **역할**, 반환 객체 = **구현**",
+        "중복된 `new` 를 메서드 하나로 — 바꿀 곳은 한 군데"
+      ],
+      "keyline": "생성·연결은 AppConfig, 실행은 서비스",
+      "time": "1:00",
+      "script": [
+        "AppConfig 는 애플리케이션이 어떻게 동작할지 구성하는 설정 클래스입니다. 하는 일은 두 가지, 구현 객체를 **생성**하고 생성자로 **연결**하는 것입니다.",
+        "`orderService()` 를 보시면 `OrderServiceImpl` 을 만들면서 저장소와 할인 정책을 생성자로 넣어 줍니다. 이렇게 외부에서 넣어 주는 것을 의존관계 주입, **DI** 라고 합니다.",
+        "코드는 리팩터링한 버전입니다. 메서드 이름이 역할, 반환하는 객체가 구현이라서, 어떤 역할에 어떤 구현을 쓰는지 한눈에 보여요.",
+        "여러 곳에 있던 `new MemoryMemberRepository()` 중복도 메서드 하나로 모았습니다.",
+        "강의는 AppConfig 를 공연 기획자에 비유합니다. 배우인 서비스는 자기 배역만 연기하고, 배역에 맞는 배우를 고르는 건 기획자가 한다는 뜻이에요.",
+        "이제 처음 문제였던 할인 정책 변경이 어떻게 되는지 보겠습니다."
+      ]
+    },
+    {
+      "type": "image",
+      "eyebrow": "02  DI와 스프링 빈",
+      "title": "사용 영역과 구성 영역",
+      "tag": "핵심",
+      "image": { "path": "img/3장_p42.png", "caption": "출처: 강의자료 3장 — 사용, 구성의 분리와 할인 정책 변경", "alt": "사용 영역의 OrderServiceImpl과 구성 영역의 AppConfig, AppConfig가 FixDiscountPolicy 대신 RateDiscountPolicy를 생성하는 그림" },
+      "bullets": [
+        "**DIP 충족** — 서비스는 `DiscountPolicy` 인터페이스에만 의존",
+        "**OCP 충족** — 정액 → 정률로 바꿔도 사용 영역 코드는 그대로",
+        "**SRP 충족** — 생성·연결은 AppConfig, 서비스는 실행만"
+      ],
+      "keyline": "고칠 곳이 **구성 영역 한 곳**으로 옮겨간다",
+      "time": "1:20",
+      "script": [
+        "AppConfig 가 등장하면서 애플리케이션이 그림처럼 둘로 나뉘었습니다. 위는 객체를 쓰는 **사용 영역**, 아래는 객체를 만들고 연결하는 **구성 영역**입니다.",
+        "정액에서 정률로 바꾸면, 아래 빨간 X 처럼 AppConfig 가 `FixDiscountPolicy` 대신 `RateDiscountPolicy` 를 생성할 뿐입니다. `discountPolicy()` 의 반환 한 줄이에요.",
+        "앞의 위반 세 가지를 같은 순서로 다시 보겠습니다.",
+        "DIP. 서비스는 이제 `DiscountPolicy` 인터페이스만 압니다. 구체 클래스는 AppConfig 가 골라서 넣어 줍니다.",
+        "OCP. 정책을 바꿔도 사용 영역의 코드는 하나도 바뀌지 않습니다.",
+        "SRP. 생성과 연결은 AppConfig, 서비스는 실행만 합니다. 책임이 나뉘었어요.",
+        "주의할 점은, 고칠 코드가 없어진 게 아니라는 겁니다. 구성 영역은 당연히 바뀝니다. **고칠 곳이 사용 영역에서 구성 영역 한 곳으로 옮겨간 것**이에요."
+      ],
+      "cues": ["3번 슬라이드와 **같은 순서**(DIP → OCP → SRP)로 \"위반 → 충족\"을 대비하세요.", "마지막 문장(고칠 곳이 옮겨갔다)에 무게를. \"코드를 안 고쳐도 된다\"로 말하지 마세요."]
+    },
+    {
+      "type": "image",
+      "eyebrow": "02  DI와 스프링 빈",
+      "title": "정적 의존관계와 동적 의존관계",
+      "tag": "핵심",
+      "image": { "path": "img/3장_p47_정적동적.png", "caption": "출처: 강의자료 3장 — 왼쪽: 클래스 다이어그램(정적), 오른쪽: 객체 다이어그램(동적)", "alt": "왼쪽은 OrderServiceImpl의 클래스 의존관계, 오른쪽은 실행 시점의 객체 연결 그림" },
+      "callout": "**DI** — 정적 의존(`import`)은 그대로, 실행 시점의 **객체 연결만 외부가** 정한다 · 그 외부 = **DI 컨테이너**",
+      "time": "1:30",
+      "script": [
+        "그럼 서비스 코드는 그대로인데 동작은 어떻게 바뀌는 걸까요? 강의는 의존관계를 두 가지로 나눠서 봅니다.",
+        "왼쪽 **정적인 클래스 의존관계**는 소스 코드에 적힌 의존입니다. `OrderServiceImpl.java` 의 import 와 필드 타입만 봐도 `MemberRepository`, `DiscountPolicy` 두 인터페이스를 쓴다는 걸 실행하지 않고 알 수 있어요.",
+        "오른쪽 **동적인 객체 의존관계**는 프로그램이 실행된 뒤 메모리에 실제로 만들어진 객체끼리의 연결입니다. `discountPolicy` 필드에 정액 할인 객체가 들어 있는지 정률 할인 객체가 들어 있는지는, 코드만 봐서는 모르고 실행해야 정해집니다.",
+        "여기서 실행 시점은 `main()` 에서 `appConfig.orderService()` 를 호출하는 순간입니다. 스프링을 쓰면 애플리케이션이 시작되면서 컨테이너가 만들어지는 순간이고요.",
+        "그 순간 AppConfig 가 `new FixDiscountPolicy()` 로 힙에 객체를 만들고, 그 객체의 **참조값**을 `OrderServiceImpl` 생성자에 넘깁니다. 서비스 필드에는 그 참조값이 저장되고요. 이렇게 외부가 객체를 만들어 참조를 넣어 주는 것이 **DI** 입니다.",
+        "그래서 정률 할인으로 바꿀 때 **그대로 두는 것**은 `OrderServiceImpl` 의 소스 코드, 즉 import 와 필드 타입입니다. **바뀌는 것**은 실행할 때 그 필드가 가리키는 객체가 정액 객체에서 정률 객체로 바뀌는 것뿐이고, 그건 AppConfig 한 줄이 정합니다.",
+        "이렇게 제어 흐름을 서비스가 아니라 외부가 쥐는 것을 **제어의 역전, IoC**, 객체를 생성하고 연결해 주는 AppConfig 같은 것을 **DI 컨테이너**라고 부릅니다. 다음 장에서 이 DI 컨테이너를 스프링으로 바꿉니다."
+      ],
+      "cues": ["\"왼쪽 그림 / 오른쪽 그림\"을 번갈아 가리키며. 정적은 그대로, 동적만 바뀐다가 핵심입니다.", "IoC 는 화면에 없습니다 — 대사로만 짚고 아래 결론 띠로 마무리하세요."]
+    },
+    {
+      "type": "code-compare",
+      "eyebrow": "02  DI와 스프링 빈",
+      "title": "AppConfig에서 스프링 빈으로",
+      "left": { "label": "순수 자바 — 개발자가 직접 꺼낸다", "code": "// MemberApp\nAppConfig appConfig = new AppConfig();\nMemberService memberService =\n        appConfig.memberService();" },
+      "right": { "label": "스프링 — 컨테이너가 등록하고 꺼내 준다", "code": "@Configuration  // 추가\npublic class AppConfig {\n    @Bean       // 추가\n    public MemberService memberService() {...}\n}\n// MemberApp\nApplicationContext ac =\n        new AnnotationConfigApplicationContext(\n                AppConfig.class);\nMemberService memberService = ac.getBean(\n        \"memberService\", MemberService.class);" },
+      "points": [
+        { "head": "순수 자바", "body": "AppConfig 를 `new` 하고 메서드를 직접 호출" },
+        { "head": "스프링", "body": "`@Bean` 메서드의 반환 객체 = **스프링 빈**, 빈 이름 = 메서드 이름" }
+      ],
+      "time": "1:00",
+      "script": [
+        "지금까지는 순수 자바였습니다. 이제 스프링으로 바꿔 보겠습니다.",
+        "왼쪽은 개발자가 AppConfig 를 `new` 하고 메서드를 직접 호출해서 서비스를 꺼냈습니다.",
+        "오른쪽은 AppConfig 에 `@Configuration` 을, 각 메서드에 `@Bean` 을 붙입니다. 바뀐 건 애노테이션 두 종류뿐이에요.",
+        "그리고 `ApplicationContext`, 즉 **스프링 컨테이너**를 만들 때 AppConfig 를 설정 정보로 넘깁니다. 컨테이너는 `@Bean` 이 붙은 메서드를 모두 호출해서 반환된 객체를 등록하는데, 이 객체를 **스프링 빈**이라고 합니다.",
+        "빈 이름은 기본으로 **메서드 이름**을 씁니다. 그래서 아래처럼 `getBean(\"memberService\", ...)` 로 꺼내요.",
+        "코드는 조금 늘었지만, 이제 객체를 만들고 연결하는 일은 스프링 컨테이너가 맡습니다."
+      ]
+    },
+    {
+      "type": "code-compare",
+      "eyebrow": "03  자바 설정과 XML 설정",
+      "title": "자바 설정과 XML 설정",
+      "tag": "핵심",
+      "left": { "label": "자바 설정 — AppConfig.java", "code": "@Configuration\npublic class AppConfig {\n    @Bean\n    public MemberService memberService() {\n        return new MemberServiceImpl(\n                memberRepository());\n    }\n    // memberRepository() 도 같은 방식\n}" },
+      "right": { "label": "XML 설정 — appConfig.xml", "lang": "html", "code": "<bean id=\"memberService\"\n    class=\"...member.MemberServiceImpl\">\n    <constructor-arg name=\"memberRepository\"\n        ref=\"memberRepository\"/>\n</bean>\n<!-- memberRepository 도 같은 방식 -->" },
+      "points": [
+        { "head": "자바 설정", "body": "`AnnotationConfigApplicationContext` 에 클래스를 넘긴다" },
+        { "head": "XML 설정", "body": "`GenericXmlApplicationContext` 에 xml 파일을 넘긴다" }
+      ],
+      "time": "1:10",
+      "script": [
+        "세 번째 덩어리입니다. 방금 본 자바 설정 말고도 빈을 등록하는 방법이 있을까요?",
+        "강의자료에 따르면 스프링 컨테이너는 자바 코드, XML, Groovy 등 여러 형식의 설정을 받을 수 있게 설계되어 있습니다. 강의에서 직접 다루는 건 왼쪽 **자바 설정**과 오른쪽 **XML 설정** 두 가지예요.",
+        "두 코드를 나란히 보시면, `@Bean` 메서드 하나가 `<bean>` 태그 하나에 대응합니다. 메서드 이름이 `id` 가 되고, 생성자로 넣던 저장소는 `<constructor-arg>` 의 `ref` 로 연결합니다.",
+        "다른 건 아래 컨테이너 클래스입니다. 자바 설정은 `AnnotationConfigApplicationContext` 에, XML 은 `GenericXmlApplicationContext` 에 설정을 넘깁니다. 둘 다 `ApplicationContext` 의 구현체예요.",
+        "강의자료 기준으로 요즘은 스프링 부트와 함께 자바 설정을 주로 쓰고, XML 은 레거시 프로젝트에 많이 남아 있습니다. XML 은 컴파일 없이 설정을 바꿀 수 있다는 장점도 있어요.",
+        "중요한 건 어느 쪽이든 `MemberServiceImpl` 같은 서비스 코드는 **그대로**라는 점입니다."
+      ],
+      "cues": ["XML 의 `...` 은 패키지 생략 표시라고 한마디 하세요."]
+    },
+    {
+      "type": "case",
+      "title": "실무 프로젝트의 빈 설정",
+      "tag": "실무 · 강의 밖 보충",
+      "bullets": [
+        "**레거시** — 빈 등록은 전부 XML (`@Configuration` 0개)",
+        "**부트** — `@Configuration` + `@Bean` (XML 0개)",
+        "**혼용** — 레거시 XML 의 `component-scan` 이 `@Service` 붙은 클래스를 등록"
+      ],
+      "keyline": "**인터페이스**로 받아야 바꿔 끼울 수 있다",
+      "code": [
+        { "label": "레거시 — XML 로 등록, 꺼낼 때 구체 클래스로 형변환", "lang": "html", "code": "<bean id=\"passwordEncoder\" class=\"...\"/>\n\nStandardPasswordEncoder encoder =\n        (StandardPasswordEncoder) context\n                .getBean(\"passwordEncoder\");" },
+        { "label": "부트 — 등록(@Bean)과 사용(인터페이스)", "code": "@Bean\npublic PasswordEncoder passwordEncoder() {\n    return new BCryptPasswordEncoder();\n}\n// 서비스 — 생성자로 주입\nprivate final PasswordEncoder encoder;" }
+      ],
+      "time": "1:10",
+      "script": [
+        "강의에는 없는 내용을 보충하겠습니다. 제가 다룬 실무 프로젝트에서 **같은 비밀번호 암호화 빈**을 어떻게 등록하고 쓰는지 보겠습니다.",
+        "왼쪽 첫 줄, 레거시 프로젝트는 `@Configuration` 이 하나도 없고 빈을 전부 XML 로 등록합니다. 오른쪽 위 블록 첫 줄처럼 `<bean>` 태그로요.",
+        "왼쪽 둘째 줄, 부트 프로젝트는 반대로 XML 이 없습니다. 오른쪽 아래 블록처럼 `@Bean` 메서드로 등록해요.",
+        "왼쪽 셋째 줄, 레거시도 섞어 씁니다. XML 안의 `component-scan` 이 `@Service` 가 붙은 클래스를 빈으로 등록합니다. 6장에서 나오는 내용이에요.",
+        "차이는 꺼내 쓰는 코드입니다. 오른쪽 위 블록 아래 세 줄, 레거시는 빈을 꺼내서 `StandardPasswordEncoder` **구체 클래스로 형변환**합니다. 3번 슬라이드의 구현까지 의존하는 문제 그대로라, 암호화 방식을 바꾸면 이 코드가 있는 곳을 모두 고쳐야 해요.",
+        "부트는 마지막 줄처럼 `PasswordEncoder` **인터페이스**로 받습니다. 그래서 방식을 바꿀 때 `@Bean` 의 `return` 한 줄만 고치면 됩니다. 왼쪽 아래 문장처럼, 꺼내 쓰는 쪽이 인터페이스로 받아야 바꿔 끼울 수 있습니다."
+      ],
+      "cues": ["\"강의 밖 보충\"이라고 먼저 밝히세요.", "⚠️ 회사 이름·패키지·프로젝트 이름은 말하지 마세요. \"레거시 프로젝트 / 부트 프로젝트\"로만.", "왼쪽 세 줄 → 오른쪽 위 블록(형변환) → 아래 블록 마지막 줄(인터페이스) 순서로 가리키며."]
+    },
+    {
+      "type": "summary",
+      "items": [
+        { "no": "01", "head": "인터페이스를 써도 `new` 로 고르면 구현까지 의존한다", "sub": "DIP · OCP · SRP 가 함께 깨진다" },
+        { "no": "02", "head": "생성·연결은 AppConfig 로, 이제는 스프링 컨테이너로", "sub": "생성자 주입 · 사용/구성 영역 · 정적/동적 의존관계 · @Configuration + @Bean" },
+        { "no": "03", "head": "설정 형식이 달라도 서비스 코드는 그대로", "sub": "자바 설정(부트) · XML 설정(레거시) · 레거시는 XML + 컴포넌트 스캔" }
+      ],
+      "time": "0:40",
+      "script": [
+        "세 줄로 정리하겠습니다.",
+        "하나. 인터페이스를 써도 `new` 로 구현을 고르면 구현까지 의존합니다. DIP, OCP, SRP 가 함께 깨집니다.",
+        "둘. 생성과 연결은 AppConfig 로, 이제는 스프링 컨테이너로 옮겼습니다. 클래스 의존은 그대로 두고 실행 시점의 객체 연결만 바꿉니다.",
+        "셋. 설정은 자바든 XML 이든 형식만 다를 뿐, 서비스 코드는 그대로입니다."
+      ],
+      "cues": ["세 줄은 **천천히.** 청중이 받아 적는 구간입니다."]
+    },
+    {
+      "type": "quiz-item",
+      "kind": "O / X",
+      "q": "필드 타입이 인터페이스이므로 이 코드는 **DIP를 지킨다**.",
+      "code": "// OrderServiceImpl\nprivate final DiscountPolicy discountPolicy =\n        new RateDiscountPolicy();",
+      "answer": "X",
+      "reason": "`new` 로 구체 클래스를 직접 고른다 → 구현에도 의존(DIP 위반). 정책을 바꾸면 이 코드를 고쳐야 한다(OCP 위반).",
+      "time": "0:30",
+      "script": ["퀴즈 두 문제로 마무리하겠습니다. 첫 번째 문제입니다. 필드 타입이 인터페이스인 이 코드, DIP 를 지킨 코드일까요? O 일까요, X 일까요?", "(20~30초 기다린 뒤 넘긴다)"],
+      "cues": ["출제 핵심 주제 1 — 구현까지 의존하는 문제 (DIP·OCP)"],
+      "answerTime": "0:40",
+      "answerScript": [
+        "정답은 **X** 입니다.",
+        "필드 타입은 인터페이스지만, 오른쪽 `new RateDiscountPolicy()` 로 **구체 클래스를 직접 고르고** 있습니다. 3번 그림의 아래 화살표가 그대로 남아 있는 거예요.",
+        "그래서 정책을 다시 바꾸려면 이 코드를 열어서 고쳐야 하고, OCP 도 함께 위반입니다.",
+        "DIP 를 지키려면 이 클래스 안에서 `new` 가 사라져야 합니다. 생성자로 인터페이스만 받고, 어떤 구현을 넣을지는 AppConfig, 지금은 스프링 컨테이너가 정합니다.",
+        "서비스 안에서 `new` 로 다른 구현 객체를 만드는 코드가 보이면, 그 클래스가 구현까지 알고 있다는 신호로 보시면 됩니다."
+      ],
+      "answerCues": ["\"`new` 가 남아 있으면 구현에 의존\" — 3번 슬라이드를 떠올리게 하세요."]
+    },
+    {
+      "type": "quiz-item",
+      "kind": "O / X",
+      "q": "설정을 `AppConfig.java` 에서 `appConfig.xml` 로 바꾸면 `MemberServiceImpl` 도 고쳐야 한다.",
+      "answer": "X",
+      "reason": "서비스는 생성자로 인터페이스만 받는다. 바뀌는 건 컨테이너 클래스(`GenericXmlApplicationContext`)와 설정 파일뿐.",
+      "time": "0:30",
+      "script": ["두 번째 문제입니다. 설정을 자바에서 XML 로 바꾸면 `MemberServiceImpl` 도 고쳐야 할까요? O 일까요, X 일까요?", "(20~30초 기다린 뒤 넘긴다)"],
+      "cues": ["출제 핵심 주제 2 — 자바 설정과 XML 설정"],
+      "answerTime": "0:40",
+      "answerScript": [
+        "정답은 **X** 입니다.",
+        "`MemberServiceImpl` 은 생성자로 `MemberRepository` 인터페이스만 받습니다. 누가 자기를 만들고 무엇을 넣어 주는지 모릅니다.",
+        "바뀌는 건 설정 쪽뿐입니다. `AppConfig.java` 대신 `appConfig.xml` 을 쓰고, 컨테이너를 `GenericXmlApplicationContext` 로 만들면 끝이에요. 9번에서 본 것처럼 `<bean>` 과 `<constructor-arg>` 가 같은 생성자를 호출해 줍니다.",
+        "7번의 말로 하면, 정적인 클래스 의존은 그대로이고 객체를 만들어 연결하는 쪽만 바뀐 겁니다.",
+        "오늘 발표를 한 문장으로 정리하면, 객체를 만들고 연결하는 책임을 떼어내면 설정을 어떻게 바꾸든 사용하는 코드는 흔들리지 않는다는 것입니다. 들어주셔서 감사합니다."
+      ],
+      "answerCues": ["마지막 문장은 첫 슬라이드의 관통 메시지로 돌아가며 닫습니다."]
+    }
+  ],
+  "rehearsal": [
+    "타이머로 전체 1회 측정 → 14:30, 상한 15분을 넘지 않는지 확인 (여유 30초)",
+    "2번·4번 질문 후 5~8초 기다리기 — 채팅 답을 읽어 주고 넘어가는 연습",
+    "3번(위반)과 6번(충족)을 DIP → OCP → SRP 같은 순서로 말하는지 확인",
+    "퀴즈 2문제 각각 20~30초 기다린 뒤 넘기는 타이밍 연습",
+    "10번은 \"강의 밖 보충\"이라고 먼저 밝히고, 회사·프로젝트 이름이 말에 안 나오는지 확인",
+    "발표 PC에 Pretendard 설치 확인",
+    "디스코드 화면공유: 슬라이드쇼 창만 공유, 발표자 보기 위치 확인"
+  ]
+}
