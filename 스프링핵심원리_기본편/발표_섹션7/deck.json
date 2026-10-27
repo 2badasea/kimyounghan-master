@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "title": "김영한의 스프링 핵심 원리 - 기본편 (섹션 7 컴포넌트 스캔)",
+    "style": "v1",
+    "course": "김영한의 스프링 핵심 원리 - 기본편",
+    "presenter": "이바다",
+    "scope": "6장(90~101쪽)",
+    "runtime": "약 5분 (이번만 예외: 퀴즈 없음)",
+    "compress": "**5번(빈 이름 충돌)** 은 0:30 으로 줄이세요. 오른쪽 세 줄만 읽고 넘어갑니다."
+  },
+  "output": { "dir": ".", "name": "김영한_스프링핵심원리_기본편_섹션7_발표", "script": "발표대본.md" },
+  "slides": [
+    {
+      "type": "cover",
+      "label": "표지·목차",
+      "eyebrow": "김영한의 스프링 핵심 원리 - 기본편 · 섹션 7 컴포넌트 스캔",
+      "title": "스프링 핵심 원리 기본편",
+      "agenda": [
+        { "no": "01", "title": "스캔해서 등록", "desc": "@ComponentScan · @Component" },
+        { "no": "02", "title": "자동 주입", "desc": "@Autowired 는 타입으로" },
+        { "no": "03", "title": "빈 이름 충돌", "desc": "수동과 자동이 겹치면" }
+      ],
+      "time": "0:30",
+      "script": [
+        "섹션 7, 컴포넌트 스캔을 맡은 이바다입니다.",
+        "지금까지 AppConfig 에서는 빈을 하나하나 등록하고, 생성자에 무엇을 넣을지도 직접 적었습니다.",
+        "오늘은 그 두 가지, **등록과 주입을 스프링이 자동으로** 해 주는 방법과, 이때 생길 수 있는 빈 이름 충돌을 5분 안에 보겠습니다."
+      ],
+      "cues": ["\"등록과 주입을 자동으로\" — 발표 전체를 꿰는 한 문장입니다."]
+    },
+    {
+      "type": "code-compare",
+      "eyebrow": "07  컴포넌트 스캔",
+      "title": "수동 등록과 컴포넌트 스캔",
+      "left": { "label": "AppConfig — 등록과 연결을 한 파일에 직접", "code": "@Configuration\npublic class AppConfig {\n    @Bean\n    public OrderService orderService() {\n        return new OrderServiceImpl(\n                memberRepository(),\n                discountPolicy());\n    }\n    // 빈마다 등록 + 연결을 계속 적는다\n}" },
+      "right": { "label": "AutoAppConfig — 클래스에 표시만", "code": "@Configuration\n@ComponentScan\npublic class AutoAppConfig {}\n\n@Component\npublic class OrderServiceImpl ... {\n    @Autowired\n    public OrderServiceImpl(...) {...}\n}" },
+      "points": [
+        { "head": "수동", "body": "생성과 **연결**까지 설정 파일 **한 곳**에 — 커지고, 빠뜨리기 쉽다" },
+        { "head": "자동", "body": "클래스에 **표시만**, 연결은 `@Autowired` 로 스프링이 — 대신 전체 구성이 **한눈에** 안 보인다" }
+      ],
+      "time": "1:40",
+      "script": [
+        "먼저 왼쪽은 지금까지 쓴 AppConfig 입니다. `orderService()` 처럼 빈 하나마다 `@Bean` 메서드를 만들고, `new OrderServiceImpl(memberRepository(), discountPolicy())` 처럼 무엇을 넣을지, 연결까지 직접 적었죠.",
+        "예제는 몇 개 안 되지만 빈이 수십, 수백 개가 되면 어떨까요? 왼쪽 아래처럼 설정 정보도 커지고, 클래스를 새로 만들고 등록을 빠뜨리는 일도 생깁니다.",
+        "그래서 오른쪽처럼 설정 클래스에는 `@ComponentScan` 만 붙이고, 각 클래스에 `@Component` 를 붙입니다. 스프링이 이 클래스들을 찾아서 자동으로 등록하는데, 이걸 **컴포넌트 스캔**이라고 합니다.",
+        "여기서 이런 의문이 들 수 있습니다. 어차피 클래스마다 `@Component` 를 붙이는 거면, `@Bean` 을 하나씩 적는 거랑 똑같지 않을까요?",
+        "차이는 무엇을, 어디에 적느냐입니다. `@Bean` 은 별도 설정 파일에 생성과 연결까지 적어야 하지만, `@Component` 는 클래스 위에 \"나는 빈이다\" 표시만 합니다. 연결은 오른쪽 `@Autowired` 를 보고 스프링이 해 줘요. 그래서 의존관계가 하나 늘어도 생성자만 고치면 되고, 클래스를 만들면서 바로 붙이니 빠뜨릴 일도 적습니다.",
+        "대신 오른쪽 아래 설명 끝처럼, AppConfig 에서 전체 구성을 한 파일로 보던 장점은 줄어듭니다. 그럼 스프링이 연결을 어떻게 하는지, 다음 두 장의 그림으로 보겠습니다."
+      ],
+      "cues": ["\"똑같지 않을까요?\" 의문을 먼저 던지고 → \"무엇을, 어디에 적느냐\"로 답하세요. 왼쪽 `new ...(...)` 와 오른쪽 `@Autowired` 를 번갈아 가리키며."]
+    },
+    {
+      "type": "image",
+      "eyebrow": "07  컴포넌트 스캔",
+      "title": "① 스캔해서 등록",
+      "image": { "path": "img/6장_p93_스캔.png", "caption": "출처: 강의자료 6장 — @ComponentScan", "alt": "@Component 클래스 네 개가 스프링 빈 저장소에 클래스명 첫 글자 소문자 이름으로 등록되는 그림" },
+      "bullets": [
+        "`@Component` 붙은 클래스를 찾아 **스프링 빈으로 등록**",
+        "빈 이름 = 클래스명, **첫 글자만 소문자**",
+        "직접 지정: `@Component(\"memberService2\")`"
+      ],
+      "keyline": "`@Bean` 은 메서드 이름, 스캔은 **클래스 이름**",
+      "time": "0:50",
+      "script": [
+        "첫 단계는 등록입니다. 왼쪽 코드의 `@Component` 클래스 네 개가 오른쪽 스프링 빈 저장소에 등록됩니다.",
+        "빈 이름은 클래스 이름에서 첫 글자만 소문자로 바꾼 것입니다. `MemberServiceImpl` 은 `memberServiceImpl` 이 돼요.",
+        "이름을 바꾸고 싶으면 `@Component(\"memberService2\")` 처럼 직접 줄 수 있습니다.",
+        "아래 문장처럼, `@Bean` 으로 등록할 때는 메서드 이름이 빈 이름이었는데, 스캔에서는 클래스 이름이 기준입니다."
+      ]
+    },
+    {
+      "type": "image",
+      "eyebrow": "07  컴포넌트 스캔",
+      "title": "② @Autowired 로 자동 주입",
+      "image": { "path": "img/6장_p94_자동주입.png", "caption": "출처: 강의자료 6장 — @Autowired 의존관계 자동 주입", "alt": "OrderServiceImpl 생성자의 @Autowired 로 빈 저장소의 memoryMemberRepository 와 rateDiscountPolicy 가 주입되는 그림" },
+      "bullets": [
+        "생성자에 `@Autowired` → 스프링이 빈을 찾아 **주입**",
+        "기본 조회 전략은 **타입** — `getBean(타입)` 과 같다",
+        "파라미터가 여러 개여도 모두 찾아 넣는다"
+      ],
+      "time": "0:50",
+      "script": [
+        "둘째 단계는 주입입니다. 이제 AppConfig 가 없으니, 왼쪽처럼 클래스 안의 생성자에 `@Autowired` 를 붙여 여기에 넣어 달라고 표시합니다.",
+        "그러면 스프링 컨테이너가 파라미터 **타입**을 보고 빈 저장소에서 맞는 빈을 찾아 넣습니다. 오른쪽 두 번째 줄처럼 `getBean` 을 타입으로 대신 호출해 준다고 보시면 됩니다.",
+        "그림처럼 파라미터가 두 개여도 `memoryMemberRepository` 와 `rateDiscountPolicy` 를 모두 찾아서 넣어 줍니다.",
+        "그럼 같은 이름의 빈이 두 번 등록되면 어떻게 될까요?"
+      ]
+    },
+    {
+      "type": "code-explain",
+      "eyebrow": "07  컴포넌트 스캔",
+      "title": "빈 이름 충돌",
+      "code": { "label": "수동 빈과 자동 빈이 같은 이름", "code": "// 자동 등록 — 빈 이름 memoryMemberRepository\n@Component\npublic class MemoryMemberRepository\n        implements MemberRepository {}\n\n// 수동 등록 — 같은 이름\n@Bean(name = \"memoryMemberRepository\")\npublic MemberRepository memberRepository() {\n    return new MemoryMemberRepository();\n}" },
+      "bullets": [
+        "자동 vs 자동 → **예외 발생**",
+        "수동 vs 자동 → **수동이 덮어씀** (로그만 남음)",
+        "최근 스프링 부트 → 기본값이 **오류**"
+      ],
+      "keyline": "잡기 어려운 버그는 **애매한 버그**",
+      "time": "0:50",
+      "script": [
+        "같은 이름의 빈이 충돌하는 경우는 두 가지입니다. 오른쪽 첫 줄처럼 자동 등록끼리 이름이 같으면 예외가 발생합니다.",
+        "왼쪽 코드처럼 자동 등록된 `memoryMemberRepository` 와 같은 이름으로 수동 등록하면, 수동 빈이 자동 빈을 덮어씁니다. 오류 없이 로그만 남아요.",
+        "개발자가 의도했다면 괜찮지만, 대부분은 설정이 꼬여서 생깁니다. 아래 문장처럼 이런 애매한 버그가 가장 잡기 어렵습니다.",
+        "그래서 최근 스프링 부트는 이 경우 오류를 내도록 기본값을 바꿨습니다."
+      ]
+    },
+    {
+      "type": "summary",
+      "items": [
+        { "no": "01", "head": "`@ComponentScan` 이 `@Component` 클래스를 찾아 등록", "sub": "빈 이름 = 클래스명(첫 글자 소문자) · 직접 지정 가능" },
+        { "no": "02", "head": "`@Autowired` 가 타입으로 빈을 찾아 주입", "sub": "getBean(타입) 과 같음 · 파라미터가 여러 개여도 모두" },
+        { "no": "03", "head": "수동·자동 빈 이름이 겹치면 부트는 오류", "sub": "자동끼리는 예외 · 순수 스프링은 수동이 덮어씀" }
+      ],
+      "time": "0:30",
+      "script": [
+        "세 줄로 정리하겠습니다.",
+        "하나, `@ComponentScan` 이 `@Component` 클래스를 찾아 등록합니다. 둘, `@Autowired` 가 타입으로 빈을 찾아 넣어 줍니다.",
+        "셋, 수동과 자동 빈의 이름이 겹치면 스프링 부트는 오류를 냅니다. 들어주셔서 감사합니다."
+      ],
+      "cues": ["천천히. 청중이 받아 적는 구간입니다."]
+    }
+  ],
+  "rehearsal": [
+    "타이머로 전체 1회 측정 → 5분 안팎인지 확인",
+    "2번 lead 질문은 기다리지 않고 바로 이어 갑니다 (시간 절약)",
+    "3·4번 그림을 가리키며 \"등록 → 주입\" 두 단계를 막힘없이 말할 수 있는지",
+    "발표 PC에 Pretendard 설치 확인",
+    "디스코드 화면공유: 슬라이드쇼 창만 공유, 발표자 보기 위치 확인"
+  ]
+}
